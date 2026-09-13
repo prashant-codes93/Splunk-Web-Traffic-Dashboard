@@ -30,17 +30,10 @@ index=web_traffic
 | timechart span=5m count as requests
 
 
-============================================================
-3. TOP SOURCE IPs
-============================================================
-
-index=web_traffic
-| stats count as requests by src_ip
-| sort - requests
 
 
 ============================================================
-4. TOP REQUESTED URLs
+3. TOP REQUESTED URLs
 ============================================================
 
 index=web_traffic
@@ -49,7 +42,7 @@ index=web_traffic
 
 
 ============================================================
-5. HTTP STATUS CODES
+4. HTTP STATUS CODES
 ============================================================
 
 index=web_traffic
@@ -58,7 +51,7 @@ index=web_traffic
 
 
 ============================================================
-6. HTTP METHODS
+5. HTTP METHODS
 ============================================================
 
 index=web_traffic
@@ -67,7 +60,7 @@ index=web_traffic
 
 
 ============================================================
-7. TRAFFIC RESULT CATEGORIES
+6. TRAFFIC RESULT CATEGORIES
 ============================================================
 
 index=web_traffic
@@ -81,62 +74,19 @@ index=web_traffic
 | stats count as requests by category
 
 
-============================================================
-8. TOP 404 SOURCE IPs
-============================================================
-
-index=web_traffic status=404
-| stats count as requests by src_ip
-| sort - requests
-
 
 ============================================================
-9. TOP 403 SOURCE IPs
-============================================================
-
-index=web_traffic status=403
-| stats count as requests by src_ip
-| sort - requests
-
-
-============================================================
-10. IP + URL INVESTIGATION
-============================================================
-
-index=web_traffic
-| stats count as requests by src_ip uri status
-| sort - requests
-
-
-============================================================
-11. SOURCE IP ACTIVITY
-============================================================
-
-index=web_traffic
-| stats count as total_requests dc(uri) as unique_urls by src_ip
-| sort - total_requests
-
-
-============================================================
-12. WEB TRAFFIC SUMMARY
+7. WEB TRAFFIC SUMMARY
 ============================================================
 
 index=web_traffic
 | stats count as total_requests dc(src_ip) as unique_ips dc(uri) as unique_urls
 
 
-============================================================
-13. HIGH-VOLUME SOURCE IPs
-============================================================
-
-index=web_traffic
-| stats count as requests by src_ip
-| where requests > 100
-| sort - requests
 
 
 ============================================================
-14. EXCESSIVE 404 REQUESTS
+8. EXCESSIVE 404 REQUESTS
 ============================================================
 
 index=web_traffic status=404
@@ -146,7 +96,7 @@ index=web_traffic status=404
 
 
 ============================================================
-15. EXCESSIVE 403 REQUESTS
+9. EXCESSIVE 403 REQUESTS
 ============================================================
 
 index=web_traffic status=403
@@ -156,7 +106,7 @@ index=web_traffic status=403
 
 
 ============================================================
-16. SUSPICIOUS URL ACCESS
+10. SUSPICIOUS URL ACCESS
 ============================================================
 
 index=web_traffic
@@ -164,18 +114,11 @@ index=web_traffic
 | table _time src_ip method uri status
 
 
-============================================================
-17. SUSPICIOUS URL ATTEMPTS BY IP
-============================================================
 
-index=web_traffic
-| where match(uri,"(?i)(/\.env|/wp-admin|/wp-login|/etc/passwd|/admin|/config|/phpmyadmin)")
-| stats count as suspicious_requests by src_ip
-| sort - suspicious_requests
 
 
 ============================================================
-18. UNUSUAL HTTP METHODS
+11. UNUSUAL HTTP METHODS
 ============================================================
 
 index=web_traffic
@@ -185,7 +128,7 @@ index=web_traffic
 
 
 ============================================================
-19. POSSIBLE SCANNING ACTIVITY
+12. POSSIBLE SCANNING ACTIVITY
 ============================================================
 
 index=web_traffic
@@ -195,7 +138,7 @@ index=web_traffic
 
 
 ============================================================
-20. SERVER ERRORS
+13. SERVER ERRORS
 ============================================================
 
 index=web_traffic status>=500 status<600
@@ -204,7 +147,7 @@ index=web_traffic status>=500 status<600
 
 
 ============================================================
-21. SUSPICIOUS IP RISK SCORE
+14. SUSPICIOUS IP RISK SCORE
 ============================================================
 
 index=web_traffic
@@ -215,13 +158,7 @@ index=web_traffic
 | sort - risk_score
 
 
-============================================================
-22. INVESTIGATE A SPECIFIC SOURCE IP
-============================================================
 
-index=web_traffic src_ip="192.168.1.50"
-| table _time src_ip method uri status bytes
-| sort _time
 
 
 ============================================================

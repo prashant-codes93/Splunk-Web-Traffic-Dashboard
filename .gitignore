@@ -1,0 +1,17 @@
+# Splunk files
+*.db
+*.idx
+*.journal
+*.tsidx
+
+# Logs
+*.log
+
+# Secrets
+.env
+*.key
+*.pem
+
+# OS files
+Thumbs.db
+.DS_Store

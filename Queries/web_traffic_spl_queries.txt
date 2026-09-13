@@ -1,0 +1,229 @@
+============================================================
+SPLUNK WEB TRAFFIC PROJECT - SPL QUERIES
+============================================================
+
+INDEX:
+web_traffic
+
+FIELDS:
+src_ip
+method
+uri
+http_version
+status
+bytes
+
+
+============================================================
+1. TOTAL WEB REQUESTS
+============================================================
+
+index=web_traffic
+| stats count as total_requests
+
+
+============================================================
+2. WEB TRAFFIC OVER TIME
+============================================================
+
+index=web_traffic
+| timechart span=5m count as requests
+
+
+============================================================
+3. TOP SOURCE IPs
+============================================================
+
+index=web_traffic
+| stats count as requests by src_ip
+| sort - requests
+
+
+============================================================
+4. TOP REQUESTED URLs
+============================================================
+
+index=web_traffic
+| stats count as requests by uri
+| sort - requests
+
+
+============================================================
+5. HTTP STATUS CODES
+============================================================
+
+index=web_traffic
+| stats count as requests by status
+| sort status
+
+
+============================================================
+6. HTTP METHODS
+============================================================
+
+index=web_traffic
+| stats count as requests by method
+| sort - requests
+
+
+============================================================
+7. TRAFFIC RESULT CATEGORIES
+============================================================
+
+index=web_traffic
+| eval category=case(
+    status>=200 AND status<300,"Success",
+    status>=300 AND status<400,"Redirect",
+    status>=400 AND status<500,"Client Error",
+    status>=500,"Server Error",
+    true(),"Other"
+)
+| stats count as requests by category
+
+
+============================================================
+8. TOP 404 SOURCE IPs
+============================================================
+
+index=web_traffic status=404
+| stats count as requests by src_ip
+| sort - requests
+
+
+============================================================
+9. TOP 403 SOURCE IPs
+============================================================
+
+index=web_traffic status=403
+| stats count as requests by src_ip
+| sort - requests
+
+
+============================================================
+10. IP + URL INVESTIGATION
+============================================================
+
+index=web_traffic
+| stats count as requests by src_ip uri status
+| sort - requests
+
+
+============================================================
+11. SOURCE IP ACTIVITY
+============================================================
+
+index=web_traffic
+| stats count as total_requests dc(uri) as unique_urls by src_ip
+| sort - total_requests
+
+
+============================================================
+12. WEB TRAFFIC SUMMARY
+============================================================
+
+index=web_traffic
+| stats count as total_requests dc(src_ip) as unique_ips dc(uri) as unique_urls
+
+
+============================================================
+13. HIGH-VOLUME SOURCE IPs
+============================================================
+
+index=web_traffic
+| stats count as requests by src_ip
+| where requests > 100
+| sort - requests
+
+
+============================================================
+14. EXCESSIVE 404 REQUESTS
+============================================================
+
+index=web_traffic status=404
+| stats count as not_found by src_ip
+| where not_found > 20
+| sort - not_found
+
+
+============================================================
+15. EXCESSIVE 403 REQUESTS
+============================================================
+
+index=web_traffic status=403
+| stats count as forbidden by src_ip
+| where forbidden > 10
+| sort - forbidden
+
+
+============================================================
+16. SUSPICIOUS URL ACCESS
+============================================================
+
+index=web_traffic
+| where match(uri,"(?i)(/\.env|/wp-admin|/wp-login|/etc/passwd|/admin|/config|/phpmyadmin)")
+| table _time src_ip method uri status
+
+
+============================================================
+17. SUSPICIOUS URL ATTEMPTS BY IP
+============================================================
+
+index=web_traffic
+| where match(uri,"(?i)(/\.env|/wp-admin|/wp-login|/etc/passwd|/admin|/config|/phpmyadmin)")
+| stats count as suspicious_requests by src_ip
+| sort - suspicious_requests
+
+
+============================================================
+18. UNUSUAL HTTP METHODS
+============================================================
+
+index=web_traffic
+| where NOT match(method,"^(GET|POST|HEAD)$")
+| stats count by src_ip method
+| sort - count
+
+
+============================================================
+19. POSSIBLE SCANNING ACTIVITY
+============================================================
+
+index=web_traffic
+| stats count as requests dc(uri) as unique_urls by src_ip
+| where requests > 30 AND unique_urls > 15
+| sort - unique_urls
+
+
+============================================================
+20. SERVER ERRORS
+============================================================
+
+index=web_traffic status>=500 status<600
+| stats count as server_errors by src_ip
+| sort - server_errors
+
+
+============================================================
+21. SUSPICIOUS IP RISK SCORE
+============================================================
+
+index=web_traffic
+| eval suspicious_url=if(match(uri,"(?i)(/\.env|/wp-admin|/wp-login|/etc/passwd|/admin|/config|/phpmyadmin)"),1,0)
+| eval error_request=if(status=403 OR status=404,1,0)
+| stats count as total_requests sum(suspicious_url) as suspicious_url_requests sum(error_request) as error_requests dc(uri) as unique_urls by src_ip
+| eval risk_score=(suspicious_url_requests*5)+(error_requests*1)+(if(total_requests>100,10,0))+(if(unique_urls>20,10,0))
+| sort - risk_score
+
+
+============================================================
+22. INVESTIGATE A SPECIFIC SOURCE IP
+============================================================
+
+index=web_traffic src_ip="192.168.1.50"
+| table _time src_ip method uri status bytes
+| sort _time
+
+
+============================================================
+END OF SPL QUERIES
+============================================================
